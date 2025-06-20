@@ -184,7 +184,7 @@ namespace Array_Translate_Tool
             };
             if (dlg.ShowDialog() == true)
             {
-                File.WriteAllText(dlg.FileName, jsonData.ToString(Newtonsoft.Json.Formatting.Indented), Encoding.UTF8);
+                File.WriteAllText(dlg.FileName, jsonData.ToString(Newtonsoft.Json.Formatting.Indented), new UTF8Encoding(false));
                 unsavedChanges = false;
                 UpdateTitle();
                 MessageBox.Show("Збережено!");
