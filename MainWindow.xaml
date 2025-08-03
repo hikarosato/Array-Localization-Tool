@@ -9,7 +9,7 @@
             <Menu HorizontalAlignment="Center" Background="White" Margin="25,0,0,0">
                 <MenuItem Header="Файл" Height="27.0983400344849" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <MenuItem x:Name="BtnOpen" Header="Відкрити" Click="BtnOpen_Click"/>
-                    <MenuItem x:Name="BtnSave" Header="Зберегти" Click="BtnSave_Click"/>
+                    <MenuItem x:Name="BtnSave" Header="Зберегти як..." Click="BtnSave_Click"/>
                 </MenuItem>
                 <MenuItem Header="Редагувати" Height="27.0983400344849" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <MenuItem x:Name="BtnLoadTranslation" Header="Підтягнути переклад з JSON" Click="BtnLoadTranslation_Click"/>
