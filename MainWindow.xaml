@@ -5,13 +5,13 @@
         Closing="Window_Closing"
         KeyDown="Window_KeyDown">
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-            <Menu HorizontalAlignment="Center" Background="White" Margin="25,0,0,0">
-                <MenuItem Header="Файл" Height="27.0983400344849" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Height="27">
+            <Menu HorizontalAlignment="Center" Background="White" Margin="23,0,0,0">
+                <MenuItem Header="Файл" Height="27">
                     <MenuItem x:Name="BtnOpen" Header="Відкрити" Click="BtnOpen_Click"/>
                     <MenuItem x:Name="BtnSave" Header="Зберегти як..." Click="BtnSave_Click"/>
                 </MenuItem>
-                <MenuItem Header="Редагувати" Height="27.0983400344849" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <MenuItem Header="Редагувати">
                     <MenuItem x:Name="BtnLoadTranslation" Header="Підтягнути переклад з JSON" Click="BtnLoadTranslation_Click"/>
                     <Separator />
                     <MenuItem x:Name="BtnExportCsv" Header="Експорт у CSV" Click="BtnExportCsv_Click"/>
@@ -24,7 +24,7 @@
             <CheckBox x:Name="ChkCase" Content="З урах. регістру" Margin="6"/>
             <Button x:Name="BtnPrev" Content="⯇" Width="25" Margin="2" Click="BtnPrev_Click" IsEnabled="False" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Button x:Name="BtnNext" Content="⯈" Width="25" Margin="2" Click="BtnNext_Click" IsEnabled="False" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Label x:Name="LblSearchStatus" Content="" Margin="5,0,0,0"/>
+            <Label x:Name="LblSearchStatus" Margin="5,0,0,0"/>
         </StackPanel>
 
         <Grid Margin="5">
@@ -34,20 +34,19 @@
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
 
-            <DataGrid x:Name="DataGridTerms" AutoGenerateColumns="False" Grid.Row="0"
-                      SelectionMode="Single" SelectionUnit="FullRow"
-                      IsReadOnly="False"
-                      SelectionChanged="DataGridTerms_SelectionChanged"
-                      CellEditEnding="DataGridTerms_CellEditEnding" CanUserAddRows="False" Visibility="Collapsed">
+            <DataGrid x:Name="DataGridTerms" AutoGenerateColumns="False" Grid.Row="0" SelectionMode="Single" SelectionUnit="FullRow"
+                      IsReadOnly="False" SelectionChanged="DataGridTerms_SelectionChanged" CellEditEnding="DataGridTerms_CellEditEnding"
+                      CanUserAddRows="False" Visibility="Collapsed">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Width="45" IsReadOnly="True" Binding="{Binding Number}" CanUserSort="False"/>
                     <DataGridTextColumn Header="ID" Width="200" IsReadOnly="True" Binding="{Binding Term}" CanUserSort="False"/>
                     <DataGridTextColumn Header="Оригінал" Width="250" IsReadOnly="True" Binding="{Binding Original}" CanUserSort="False"/>
-                    <DataGridTextColumn Header="Переклад" Width="*" Binding="{Binding Translation, UpdateSourceTrigger=PropertyChanged}" CanUserSort="False"/>
+                    <DataGridTextColumn Header="Переклад" Width="*" IsReadOnly="True" Binding="{Binding Translation, UpdateSourceTrigger=PropertyChanged}" CanUserSort="False"/>
                 </DataGrid.Columns>
             </DataGrid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Center" Margin="0,5,0,5" Height="23.0983400344849">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Center"
+                        Margin="0,5,0,5" Height="23">
                 <Button x:Name="BtnRestoreOriginal" Content="Повернути оригінал" Click="BtnRestoreOriginal_Click" Width="130"/>
             </StackPanel>
 

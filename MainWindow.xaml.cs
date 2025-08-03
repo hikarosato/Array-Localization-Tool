@@ -474,7 +474,12 @@ namespace Array_Translate_Tool
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.S)
+            {
+                BtnSave_Click(null, null);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 TxtSearch.Focus();
                 TxtSearch.SelectAll();
