@@ -101,10 +101,11 @@ namespace Array_Translate_Tool
                             Translation = trans,
                             JsonIndex = i
                         });
+                        DataGridTerms.Visibility = Visibility.Visible;
                     }
                 }
             }
-
+            DataGridTerms.Visibility = Visibility.Visible;
             SetControlsEnabled(true);
             unsavedChanges = false;
             UpdateTitle();
@@ -435,7 +436,7 @@ namespace Array_Translate_Tool
         private void BtnRestoreAll_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Увага: Поточний переклад буде втрачено.\n\nВи дійсно хочете повернути оригінал у всі рядки?",
-                "Підтвердження", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                "Попередження", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 foreach (var entry in terms)
                     entry.Translation = entry.Original;
@@ -445,9 +446,9 @@ namespace Array_Translate_Tool
                 else
                     TxtTranslation.Clear();
 
-                unsavedChanges = true;
-                UpdateTitle();
                 DataGridTerms.Items.Refresh();
+                unsavedChanges = terms.Any(t => t.Translation != t.Original);
+                UpdateTitle();
             }
         }
 

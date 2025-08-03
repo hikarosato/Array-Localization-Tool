@@ -1,23 +1,29 @@
 ﻿<Window x:Class="Array_Translate_Tool.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Array Translate Tool 2 © Галицький Розбишака"
-        Height="600" Width="1040" MinHeight="600" MinWidth="1040"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Array Translate Tool 2 © Галицький Розбишака"
+        Height="600" Width="1040" MinHeight="600" MinWidth="1040" WindowStartupLocation="CenterScreen"
         Closing="Window_Closing"
-        KeyDown="Window_KeyDown"
-        WindowStartupLocation="CenterScreen">
-
+        KeyDown="Window_KeyDown">
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
-            <Button x:Name="BtnOpen" Content="Відкрити" Width="80" Margin="2" Click="BtnOpen_Click"/>
-            <Button x:Name="BtnSave" Content="Зберегти" Width="80" Margin="2" Click="BtnSave_Click"/>
-            <Button x:Name="BtnLoadTranslation" Content="Підтягнути переклад" Width="130" Margin="2" Click="BtnLoadTranslation_Click"/>
-            <Button x:Name="BtnExportCsv" Content="Експорт у CSV" Width="100" Margin="2" Click="BtnExportCsv_Click"/>
-            <Button x:Name="BtnImportCsv" Content="Імпорт з CSV" Width="100" Margin="2" Click="BtnImportCsv_Click"/>
-            <TextBox x:Name="TxtSearch" Width="250" Margin="2" KeyDown="TxtSearch_KeyDown"/>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <Menu HorizontalAlignment="Center" Background="White" Margin="25,0,0,0">
+                <MenuItem Header="Файл" Height="27.0983400344849" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <MenuItem x:Name="BtnOpen" Header="Відкрити" Click="BtnOpen_Click"/>
+                    <MenuItem x:Name="BtnSave" Header="Зберегти" Click="BtnSave_Click"/>
+                </MenuItem>
+                <MenuItem Header="Редагувати" Height="27.0983400344849" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <MenuItem x:Name="BtnLoadTranslation" Header="Підтягнути переклад з JSON" Click="BtnLoadTranslation_Click"/>
+                    <Separator />
+                    <MenuItem x:Name="BtnExportCsv" Header="Експорт у CSV" Click="BtnExportCsv_Click"/>
+                    <MenuItem x:Name="BtnImportCsv" Header="Імпорт з CSV" Click="BtnImportCsv_Click"/>
+                    <Separator />
+                    <MenuItem x:Name="BtnRestoreAll" Header="Повернути оригінал в усі рядки" Click="BtnRestoreAll_Click"/>
+                </MenuItem>
+            </Menu>
+            <TextBox x:Name="TxtSearch" Width="550" Margin="50,0,2,0" KeyDown="TxtSearch_KeyDown" VerticalContentAlignment="Center" FontSize="14"/>
             <CheckBox x:Name="ChkCase" Content="З урах. регістру" Margin="6"/>
-            <Button x:Name="BtnPrev" Content="←" Width="25" Margin="2" Click="BtnPrev_Click" IsEnabled="False"/>
-            <Button x:Name="BtnNext" Content="→" Width="25" Margin="2" Click="BtnNext_Click" IsEnabled="False"/>
+            <Button x:Name="BtnPrev" Content="⯇" Width="25" Margin="2" Click="BtnPrev_Click" IsEnabled="False" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Button x:Name="BtnNext" Content="⯈" Width="25" Margin="2" Click="BtnNext_Click" IsEnabled="False" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Label x:Name="LblSearchStatus" Content="" Margin="5,0,0,0"/>
         </StackPanel>
 
@@ -32,18 +38,17 @@
                       SelectionMode="Single" SelectionUnit="FullRow"
                       IsReadOnly="False"
                       SelectionChanged="DataGridTerms_SelectionChanged"
-                      CellEditEnding="DataGridTerms_CellEditEnding" CanUserAddRows="False">
+                      CellEditEnding="DataGridTerms_CellEditEnding" CanUserAddRows="False" Visibility="Collapsed">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Width="45" IsReadOnly="True" Binding="{Binding Number}" CanUserSort="False"/>
                     <DataGridTextColumn Header="ID" Width="200" IsReadOnly="True" Binding="{Binding Term}" CanUserSort="False"/>
                     <DataGridTextColumn Header="Оригінал" Width="250" IsReadOnly="True" Binding="{Binding Original}" CanUserSort="False"/>
-                    <DataGridTextColumn Header="Переклад" Width="*" IsReadOnly="True" Binding="{Binding Translation, UpdateSourceTrigger=PropertyChanged}" CanUserSort="False"/>
+                    <DataGridTextColumn Header="Переклад" Width="*" Binding="{Binding Translation, UpdateSourceTrigger=PropertyChanged}" CanUserSort="False"/>
                 </DataGrid.Columns>
             </DataGrid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" Margin="0,5">
-                <Button x:Name="BtnRestoreOriginal" Content="Повернути оригінал" Margin="2" Click="BtnRestoreOriginal_Click"/>
-                <Button x:Name="BtnRestoreAll" Content="Повернути оригінал в усі рядки" Margin="2" Click="BtnRestoreAll_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Center" Margin="0,5,0,5" Height="23.0983400344849">
+                <Button x:Name="BtnRestoreOriginal" Content="Повернути оригінал" Click="BtnRestoreOriginal_Click" Width="130"/>
             </StackPanel>
 
             <TextBox x:Name="TxtTranslation" Grid.Row="2" AcceptsReturn="True" FontSize="14"
