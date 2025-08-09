@@ -37,6 +37,15 @@
             <DataGrid x:Name="DataGridTerms" AutoGenerateColumns="False" Grid.Row="0" SelectionMode="Single" SelectionUnit="FullRow"
                       IsReadOnly="False" SelectionChanged="DataGridTerms_SelectionChanged" CellEditEnding="DataGridTerms_CellEditEnding"
                       CanUserAddRows="False" Visibility="Collapsed">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsModified}" Value="True">
+                                <Setter Property="Background" Value="PaleGreen"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="№" Width="45" IsReadOnly="True" Binding="{Binding Number}" CanUserSort="False"/>
                     <DataGridTextColumn Header="ID" Width="200" IsReadOnly="True" Binding="{Binding Term}" CanUserSort="False"/>

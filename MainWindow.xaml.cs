@@ -25,6 +25,7 @@ namespace Array_Translate_Tool
             public string Original { get; set; }
             public string Translation { get; set; }
             public int JsonIndex { get; set; }
+            public bool IsModified { get; set; }
         }
 
         private ObservableCollection<TermEntry> terms = new ObservableCollection<TermEntry>();
@@ -233,6 +234,7 @@ namespace Array_Translate_Tool
                 if (dict.TryGetValue(entry.Term, out var value) && value != entry.Translation)
                 {
                     entry.Translation = value;
+                    entry.IsModified = entry.Translation != entry.Original;
                     changed = true;
                 }
             }
@@ -240,7 +242,7 @@ namespace Array_Translate_Tool
             if (changed)
             {
                 DataGridTerms.Items.Refresh();
-                unsavedChanges = true;
+                unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateTitle();
             }
             else
@@ -288,6 +290,7 @@ namespace Array_Translate_Tool
                 if (entry.Translation != newText)
                 {
                     entry.Translation = newText;
+                    entry.IsModified = entry.Translation != entry.Original;
                     unsavedChanges = true;
                     UpdateTitle();
                     DataGridTerms.Items.Refresh();
@@ -401,8 +404,10 @@ namespace Array_Translate_Tool
             if (DataGridTerms.SelectedItem is TermEntry entry)
             {
                 entry.Translation = entry.Original;
+                entry.IsModified = false;
                 TxtTranslation.Text = entry.Original;
-                unsavedChanges = true;
+
+                unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateTitle();
                 DataGridTerms.Items.Refresh();
             }
@@ -414,7 +419,10 @@ namespace Array_Translate_Tool
                 "Попередження", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 foreach (var entry in terms)
+                {
                     entry.Translation = entry.Original;
+                    entry.IsModified = false;
+                }
 
                 if (DataGridTerms.SelectedItem is TermEntry current)
                     TxtTranslation.Text = current.Original;
@@ -422,10 +430,12 @@ namespace Array_Translate_Tool
                     TxtTranslation.Clear();
 
                 DataGridTerms.Items.Refresh();
-                unsavedChanges = terms.Any(t => t.Translation != t.Original);
+
+                unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateTitle();
             }
         }
+
         private void DataGridTerms_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
             if (e.EditAction == DataGridEditAction.Commit)
