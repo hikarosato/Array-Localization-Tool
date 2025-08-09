@@ -67,13 +67,30 @@ namespace Array_Translate_Tool
             jsonData = JToken.Parse(File.ReadAllText(jsonPath));
 
             bool isItemsFormat = jsonData["Items"] is JArray;
-            JArray termsArray = isItemsFormat
-                ? (JArray)jsonData["Items"]
-                : GetTermsArray(jsonData) as JArray;
+            bool isNewFormat = false;
 
-            JArray langsArray = isItemsFormat
-                ? jsonData["Languages"] as JArray
-                : GetLangsArray(jsonData) as JArray;
+            JArray termsArray = null;
+            JArray langsArray = null;
+
+            if (isItemsFormat)
+            {
+                // Старий формат
+                termsArray = (JArray)jsonData["Items"];
+                langsArray = jsonData["Languages"] as JArray;
+            }
+            else if (jsonData["lines"]?["Array"] is JArray linesArray && jsonData["languages"]?["Array"] is JArray languagesArray)
+            {
+                // Новий формат
+                termsArray = linesArray;
+                langsArray = languagesArray;
+                isNewFormat = true;
+            }
+            else
+            {
+                // Спроба взяти інші варіанти з json (як раніше)
+                termsArray = GetTermsArray(jsonData) as JArray;
+                langsArray = GetLangsArray(jsonData) as JArray;
+            }
 
             if (termsArray == null || langsArray == null || !langsArray.Any())
             {
@@ -81,7 +98,6 @@ namespace Array_Translate_Tool
                 return;
             }
 
-            // Формуємо масив назв мов із підтримкою варіантів: об'єкт із Name або прості значення
             var names = langsArray.Select((l, i) =>
             {
                 if (l.Type == JTokenType.Object)
@@ -103,18 +119,32 @@ namespace Array_Translate_Tool
             if (!AskIndex("Виберіть індекс, який БУДЕ перекладатись:", names, out langIndex)) return;
 
             terms.Clear();
+
             for (int i = 0; i < termsArray.Count; i++)
             {
                 var item = termsArray[i];
-                string term = isItemsFormat ? (string)item["Id"] : (string)item["Term"];
-                var langs = isItemsFormat
-                    ? item["Texts"]?.ToList()
-                    : item["Languages"]?["Array"]?.ToList();
 
-                if (langs != null && origIndex < langs.Count && langIndex < langs.Count)
+                if (isNewFormat)
                 {
-                    var orig = langs[origIndex]?.ToString() ?? "";
-                    var trans = langs[langIndex]?.ToString() ?? "";
+                    // Новий формат: беремо lineID як ідентифікатор
+                    string term = item["lineID"]?.ToString() ?? i.ToString();
+
+                    var transArr = item["translationText"]?["Array"] as JArray;
+                    if (transArr == null) continue;
+
+                    string orig = "";
+                    string trans = "";
+
+                    if (origIndex == 0)
+                        orig = (string)item["text"] ?? "";
+                    else if (origIndex > 0 && transArr.Count >= origIndex)
+                        orig = transArr[origIndex - 1]?.ToString() ?? "";
+
+                    if (langIndex == 0)
+                        trans = (string)item["text"] ?? "";
+                    else if (langIndex > 0 && transArr.Count >= langIndex)
+                        trans = transArr[langIndex - 1]?.ToString() ?? "";
+
                     if (!string.IsNullOrWhiteSpace(orig))
                     {
                         terms.Add(new TermEntry
@@ -125,6 +155,31 @@ namespace Array_Translate_Tool
                             Translation = trans,
                             JsonIndex = i
                         });
+                    }
+                }
+                else
+                {
+                    // Старий формат
+                    string term = isItemsFormat ? (string)item["Id"] : (string)item["Term"];
+                    var langs = isItemsFormat
+                        ? item["Texts"]?.ToList()
+                        : item["Languages"]?["Array"]?.ToList();
+
+                    if (langs != null && origIndex < langs.Count && langIndex < langs.Count)
+                    {
+                        var orig = langs[origIndex]?.ToString() ?? "";
+                        var trans = langs[langIndex]?.ToString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(orig))
+                        {
+                            terms.Add(new TermEntry
+                            {
+                                Number = terms.Count + 1,
+                                Term = term,
+                                Original = orig,
+                                Translation = trans,
+                                JsonIndex = i
+                            });
+                        }
                     }
                 }
             }
@@ -144,26 +199,86 @@ namespace Array_Translate_Tool
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             bool isItemsFormat = jsonData["Items"] is JArray;
+            bool isNewFormat = false;
+
+            JArray termsArray = null;
 
             if (isItemsFormat)
             {
-                foreach (var entry in terms)
-                {
-                    var texts = jsonData["Items"][entry.JsonIndex]["Texts"] as JArray;
-                    while (texts.Count <= langIndex)
-                        texts.Add("");
-                    texts[langIndex] = entry.Translation.Replace("\r\n", "\n");
-                }
+                termsArray = (JArray)jsonData["Items"];
+            }
+            else if (jsonData["lines"]?["Array"] is JArray linesArray)
+            {
+                termsArray = linesArray;
+                isNewFormat = true;
             }
             else
             {
-                var array = GetTermsArray(jsonData);
-                foreach (var entry in terms)
+                termsArray = GetTermsArray(jsonData) as JArray;
+            }
+
+            if (termsArray == null)
+            {
+                MessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
+                return;
+            }
+
+            foreach (var entry in terms)
+            {
+                if (isNewFormat)
                 {
-                    var langArray = array[entry.JsonIndex]["Languages"]["Array"] as JArray;
-                    while (langArray.Count <= langIndex)
-                        langArray.Add("");
-                    langArray[langIndex] = entry.Translation.Replace("\r\n", "\n");
+                    var item = termsArray[entry.JsonIndex];
+                    var transArr = item["translationText"]?["Array"] as JArray;
+
+                    if (transArr == null)
+                    {
+                        // Якщо немає масиву, створюємо
+                        transArr = new JArray();
+                        item["translationText"] = new JObject { ["Array"] = transArr };
+                    }
+
+                    // Для нового формату: індекси у transArr на 0 базі, але 0 — це Original у "text"
+                    // Тому для langIndex == 0 оновлюємо "text", інакше — translationText.Array[langIndex - 1]
+                    if (langIndex == 0)
+                    {
+                        item["text"] = entry.Translation.Replace("\r\n", "\n");
+                    }
+                    else
+                    {
+                        // Запевняємось, що індекс існує
+                        while (transArr.Count < langIndex)
+                            transArr.Add("");
+
+                        transArr[langIndex - 1] = entry.Translation.Replace("\r\n", "\n");
+                    }
+                }
+                else
+                {
+                    if (isItemsFormat)
+                    {
+                        var texts = jsonData["Items"][entry.JsonIndex]["Texts"] as JArray;
+                        if (texts == null)
+                        {
+                            texts = new JArray();
+                            jsonData["Items"][entry.JsonIndex]["Texts"] = texts;
+                        }
+                        while (texts.Count <= langIndex)
+                            texts.Add("");
+                        texts[langIndex] = entry.Translation.Replace("\r\n", "\n");
+                    }
+                    else
+                    {
+                        var array = GetTermsArray(jsonData);
+                        var langArray = array[entry.JsonIndex]["Languages"]["Array"] as JArray;
+                        if (langArray == null)
+                        {
+                            langArray = new JArray();
+                            array[entry.JsonIndex]["Languages"]["Array"] = langArray;
+                        }
+                        while (langArray.Count <= langIndex)
+                            langArray.Add("");
+                        langArray[langIndex] = entry.Translation.Replace("\r\n", "\n");
+                    }
                 }
             }
 
@@ -187,11 +302,24 @@ namespace Array_Translate_Tool
             if (dlg.ShowDialog() != true) return;
 
             var data = JToken.Parse(File.ReadAllText(dlg.FileName));
-            bool isItemsFormat = data["Items"] is JArray;
 
-            var sourceTerms = isItemsFormat
-                ? data["Items"] as JArray
-                : GetTermsArray(data) as JArray;
+            bool isItemsFormat = data["Items"] is JArray;
+            bool isNewFormat = data["lines"]?["Array"] is JArray;
+
+            JArray sourceTerms = null;
+
+            if (isItemsFormat)
+            {
+                sourceTerms = (JArray)data["Items"];
+            }
+            else if (isNewFormat)
+            {
+                sourceTerms = (JArray)data["lines"]["Array"];
+            }
+            else
+            {
+                sourceTerms = GetTermsArray(data) as JArray;
+            }
 
             if (sourceTerms == null)
             {
@@ -212,6 +340,30 @@ namespace Array_Translate_Tool
                         var val = texts[langIndex]?.ToString().Trim() ?? "";
                         dict[id] = val;
                     }
+                }
+            }
+            else if (isNewFormat)
+            {
+                foreach (var t in sourceTerms)
+                {
+                    var term = (string)t["lineID"]?.ToString();
+                    if (term == null) continue;
+
+                    string val = "";
+
+                    if (langIndex == 0)
+                    {
+                        val = (string)t["text"] ?? "";
+                    }
+                    else
+                    {
+                        var arr = t["translationText"]?["Array"] as JArray;
+                        if (arr != null && arr.Count >= langIndex)
+                            val = arr[langIndex - 1]?.ToString() ?? "";
+                    }
+
+                    val = val.Trim();
+                    dict[term] = val;
                 }
             }
             else
