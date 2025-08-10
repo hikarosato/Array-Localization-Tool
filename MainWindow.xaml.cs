@@ -465,7 +465,7 @@ namespace Array_Translate_Tool
             };
             if (dlg.ShowDialog() != true) return;
 
-            using (var writer = new StreamWriter(dlg.FileName, false, new UTF8Encoding(true)))
+            using (var writer = new StreamWriter(dlg.FileName, false, new UTF8Encoding(false)))
             using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 ShouldQuote = args => true
@@ -527,6 +527,7 @@ namespace Array_Translate_Tool
                             if (entry != null && entry.Translation != translation)
                             {
                                 entry.Translation = translation;
+                                entry.IsModified = entry.Translation != entry.Original;
                                 changed = true;
                             }
                         }
@@ -616,7 +617,8 @@ namespace Array_Translate_Tool
             }
             else
             {
-                matcher = s => s.ToLower().Contains(query.ToLower());
+                var queryLower = query.ToLower();
+                matcher = s => s.ToLower().Contains(queryLower);
             }
 
             matchIndices = terms

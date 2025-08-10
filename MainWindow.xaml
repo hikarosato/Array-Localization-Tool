@@ -41,7 +41,7 @@
                     <Style TargetType="DataGridRow">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsModified}" Value="True">
-                                <Setter Property="Background" Value="PaleGreen"/>
+                                <Setter Property="Background" Value="#4C98FB98"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
