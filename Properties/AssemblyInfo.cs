@@ -8,7 +8,7 @@ using System.Windows;
 [assembly: AssemblyDescription("Інструмент для редагування та перекладу масивів тексту у форматі JSON.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Hikaro")]
-[assembly: AssemblyProduct("Array Translate Tool 2")]
+[assembly: AssemblyProduct("Array Localization Tool")]
 [assembly: AssemblyCopyright("Copyright © Hikaro 2025")]
 [assembly: AssemblyTrademark("Hikaro")]
 [assembly: AssemblyCulture("")]
@@ -20,5 +20,5 @@ using System.Windows;
     ResourceDictionaryLocation.SourceAssembly
 )]
 
-[assembly: AssemblyVersion("2.5.1.0")]
-[assembly: AssemblyFileVersion("2.5.1.0")]
+[assembly: AssemblyVersion("2.5.2")]
+[assembly: AssemblyFileVersion("2.5.2")]

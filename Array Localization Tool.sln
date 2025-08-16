@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36212.18 d17.14
+VisualStudioVersion = 17.14.36212.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Array Translate Tool", "Array Translate Tool.csproj", "{FEA302D5-CA52-4FF6-80C4-840C4D2DFC7D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Array Localization Tool", "Array Localization Tool.csproj", "{FEA302D5-CA52-4FF6-80C4-840C4D2DFC7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

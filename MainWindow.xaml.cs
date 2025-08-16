@@ -415,7 +415,15 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            Title = (unsavedChanges ? "*" : "") + "Array Translate Tool 2 © Галицький Розбишака";
+            var baseTitle = "Array Localization Tool 2.5.2";
+
+            if (!string.IsNullOrEmpty(jsonPath))
+            {
+                var fileName = System.IO.Path.GetFileName(jsonPath);
+                baseTitle += $" - {fileName}";
+            }
+
+            Title = (unsavedChanges ? "*" : "") + baseTitle;
         }
 
         private void DataGridTerms_SelectionChanged(object sender, SelectionChangedEventArgs e)
