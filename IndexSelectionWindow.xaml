@@ -1,0 +1,49 @@
+﻿<Window x:Class="Array_Translate_Tool.IndexSelectionWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:Array_Translate_Tool"
+        mc:Ignorable="d" Title="Вибір індексів" Height="250" Width="310"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Name="LblPrompt"
+                   Text=""
+                   Margin="0,0,0,10"
+                   TextWrapping="Wrap"/>
+
+        <ListBox Grid.Row="1"
+                 Name="ListBoxIndices"
+                 Margin="0,0,0,10"
+                 SelectionChanged="ListBoxIndices_SelectionChanged"
+                 HorizontalContentAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}"
+                               Padding="1"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <Button Name="BtnOk"
+                    Content="OK"
+                    Width="80"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    IsEnabled="False"
+                    Click="BtnOk_Click"/>
+            <Button Name="BtnCancel"
+                    Content="Скасувати"
+                    Width="80"
+                    IsCancel="True"
+                    Click="BtnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

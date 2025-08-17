@@ -4,8 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-[assembly: AssemblyTitle("Інструмент для перекладу тексту в масивах.")]
-[assembly: AssemblyDescription("Інструмент для редагування та перекладу масивів тексту у форматі JSON.")]
+[assembly: AssemblyTitle("Array Localization Tool")]
+[assembly: AssemblyDescription("Array Localization Tool")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Hikaro")]
 [assembly: AssemblyProduct("Array Localization Tool")]
@@ -20,5 +20,5 @@ using System.Windows;
     ResourceDictionaryLocation.SourceAssembly
 )]
 
-[assembly: AssemblyVersion("2.5.2")]
-[assembly: AssemblyFileVersion("2.5.2")]
+[assembly: AssemblyVersion("2.6")]
+[assembly: AssemblyFileVersion("2.6")]

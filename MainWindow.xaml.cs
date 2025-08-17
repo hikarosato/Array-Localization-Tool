@@ -58,117 +58,99 @@ namespace Array_Translate_Tool
             BtnRestoreAll.IsEnabled = state;
         }
 
-        private void BtnOpen_Click(object sender, RoutedEventArgs e)
+        public void OpenFile(string filePath)
         {
-            var dlg = new OpenFileDialog { Filter = "JSON Files (*.json)|*.json" };
-            if (dlg.ShowDialog() != true) return;
-
-            jsonPath = dlg.FileName;
-            jsonData = JToken.Parse(File.ReadAllText(jsonPath));
-
-            bool isItemsFormat = jsonData["Items"] is JArray;
-            bool isNewFormat = false;
-
-            JArray termsArray = null;
-            JArray langsArray = null;
-
-            if (isItemsFormat)
+            try
             {
-                // Старий формат
-                termsArray = (JArray)jsonData["Items"];
-                langsArray = jsonData["Languages"] as JArray;
-            }
-            else if (jsonData["lines"]?["Array"] is JArray linesArray && jsonData["languages"]?["Array"] is JArray languagesArray)
-            {
-                // Новий формат
-                termsArray = linesArray;
-                langsArray = languagesArray;
-                isNewFormat = true;
-            }
-            else
-            {
-                // Спроба взяти інші варіанти з json (як раніше)
-                termsArray = GetTermsArray(jsonData) as JArray;
-                langsArray = GetLangsArray(jsonData) as JArray;
-            }
+                jsonPath = filePath;
+                jsonData = JToken.Parse(File.ReadAllText(jsonPath));
 
-            if (termsArray == null || langsArray == null || !langsArray.Any())
-            {
-                MessageBox.Show("Невірна структура JSON", "Помилка");
-                return;
-            }
+                bool isItemsFormat = jsonData["Items"] is JArray;
+                bool isNewFormat = false;
 
-            var names = langsArray.Select((l, i) =>
-            {
-                if (l.Type == JTokenType.Object)
-                {
-                    var name = l["Name"]?.ToString();
-                    return $"{i}: {name ?? $"Мова {i}"}";
-                }
-                else if (l.Type == JTokenType.Integer || l.Type == JTokenType.Float || l.Type == JTokenType.String)
-                {
-                    return $"{i}: {l.ToString()}";
-                }
-                else
-                {
-                    return $"{i}: Мова {i}";
-                }
-            }).ToArray();
+                JArray termsArray = null;
+                JArray langsArray = null;
 
-            if (!AskIndex("Виберіть індекс, з якого перекладається:", names, out origIndex)) return;
-            if (!AskIndex("Виберіть індекс, який БУДЕ перекладатись:", names, out langIndex)) return;
-
-            terms.Clear();
-
-            for (int i = 0; i < termsArray.Count; i++)
-            {
-                var item = termsArray[i];
-
-                if (isNewFormat)
-                {
-                    // Новий формат: беремо lineID як ідентифікатор
-                    string term = item["lineID"]?.ToString() ?? i.ToString();
-
-                    var transArr = item["translationText"]?["Array"] as JArray;
-                    if (transArr == null) continue;
-
-                    string orig = "";
-                    string trans = "";
-
-                    if (origIndex == 0)
-                        orig = (string)item["text"] ?? "";
-                    else if (origIndex > 0 && transArr.Count >= origIndex)
-                        orig = transArr[origIndex - 1]?.ToString() ?? "";
-
-                    if (langIndex == 0)
-                        trans = (string)item["text"] ?? "";
-                    else if (langIndex > 0 && transArr.Count >= langIndex)
-                        trans = transArr[langIndex - 1]?.ToString() ?? "";
-
-                    if (!string.IsNullOrWhiteSpace(orig))
-                    {
-                        terms.Add(new TermEntry
-                        {
-                            Number = terms.Count + 1,
-                            Term = term,
-                            Original = orig,
-                            Translation = trans,
-                            JsonIndex = i
-                        });
-                    }
-                }
-                else
+                if (isItemsFormat)
                 {
                     // Старий формат
-                    string term = isItemsFormat ? (string)item["Id"] : (string)item["Term"];
-                    var langs = isItemsFormat
-                        ? item["Texts"]?.ToList()
-                        : item["Languages"]?["Array"]?.ToList();
+                    termsArray = (JArray)jsonData["Items"];
+                    langsArray = jsonData["Languages"] as JArray;
+                }
+                else if (jsonData["lines"]?["Array"] is JArray linesArray && jsonData["languages"]?["Array"] is JArray languagesArray)
+                {
+                    // Новий формат
+                    termsArray = linesArray;
+                    langsArray = languagesArray;
+                    isNewFormat = true;
+                }
+                else
+                {
+                    // Спроба взяти інші варіанти з json
+                    termsArray = GetTermsArray(jsonData) as JArray;
+                    langsArray = GetLangsArray(jsonData) as JArray;
+                }
 
-                    if (langs != null && origIndex < langs.Count && langIndex < langs.Count)
+                if (termsArray == null || langsArray == null || !langsArray.Any())
+                {
+                    MessageBox.Show("Невірна структура JSON", "Помилка");
+                    return;
+                }
+
+                var names = langsArray.Select((l, i) =>
+                {
+                    if (l.Type == JTokenType.Object)
                     {
-                        var orig = langs[origIndex]?.ToString() ?? "";
-                        var trans = langs[langIndex]?.ToString() ?? "";
+                        var name = l["Name"]?.ToString();
+                        return $"{i}: {name ?? $"Мова {i}"}";
+                    }
+                    else if (l.Type == JTokenType.Integer || l.Type == JTokenType.Float || l.Type == JTokenType.String)
+                    {
+                        return $"{i}: {l.ToString()}";
+                    }
+                    else
+                    {
+                        return $"{i}: Мова {i}";
+                    }
+                }).ToArray();
+
+                int tempOrigIndex, tempLangIndex;
+
+                if (!ShowIndexSelectionDialog("Виберіть індекс мови, з якого перекладається:", names, out tempOrigIndex))
+                    return;
+                origIndex = tempOrigIndex;
+
+                if (!ShowIndexSelectionDialog("Виберіть індекс мови, який перекладатиметься:", names, out tempLangIndex))
+                    return;
+                langIndex = tempLangIndex;
+
+                terms.Clear();
+
+                for (int i = 0; i < termsArray.Count; i++)
+                {
+                    var item = termsArray[i];
+
+                    if (isNewFormat)
+                    {
+                        // Новий формат: беремо lineID як ідентифікатор
+                        string term = item["lineID"]?.ToString() ?? i.ToString();
+
+                        var transArr = item["translationText"]?["Array"] as JArray;
+                        if (transArr == null) continue;
+
+                        string orig = "";
+                        string trans = "";
+
+                        if (origIndex == 0)
+                            orig = (string)item["text"] ?? "";
+                        else if (origIndex > 0 && transArr.Count >= origIndex)
+                            orig = transArr[origIndex - 1]?.ToString() ?? "";
+
+                        if (langIndex == 0)
+                            trans = (string)item["text"] ?? "";
+                        else if (langIndex > 0 && transArr.Count >= langIndex)
+                            trans = transArr[langIndex - 1]?.ToString() ?? "";
+
                         if (!string.IsNullOrWhiteSpace(orig))
                         {
                             terms.Add(new TermEntry
@@ -181,19 +163,80 @@ namespace Array_Translate_Tool
                             });
                         }
                     }
-                }
-            }
+                    else
+                    {
+                        // Старий формат
+                        string term = isItemsFormat ? (string)item["Id"] : (string)item["Term"];
+                        var langs = isItemsFormat
+                            ? item["Texts"]?.ToList()
+                            : item["Languages"]?["Array"]?.ToList();
 
-            DataGridTerms.Visibility = Visibility.Visible;
-            SetControlsEnabled(true);
-            unsavedChanges = false;
-            UpdateTitle();
+                        if (langs != null && origIndex < langs.Count && langIndex < langs.Count)
+                        {
+                            var orig = langs[origIndex]?.ToString() ?? "";
+                            var trans = langs[langIndex]?.ToString() ?? "";
+                            if (!string.IsNullOrWhiteSpace(orig))
+                            {
+                                terms.Add(new TermEntry
+                                {
+                                    Number = terms.Count + 1,
+                                    Term = term,
+                                    Original = orig,
+                                    Translation = trans,
+                                    JsonIndex = i
+                                });
+                            }
+                        }
+                    }
+                }
+
+                DataGridTerms.Visibility = Visibility.Visible;
+                SetControlsEnabled(true);
+                unsavedChanges = false;
+                UpdateTitle();
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show($"Файл не знайдено за шляхом: {filePath}", "Помилка");
+                SetControlsEnabled(false);
+                BtnOpen.IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не вдалося завантажити файл. Можливо, він пошкоджений або має невірний формат.\n\nПомилка: {ex.Message}", "Помилка");
+                SetControlsEnabled(false);
+                BtnOpen.IsEnabled = true;
+            }
         }
 
-        private bool AskIndex(string prompt, string[] items, out int result)
+        private void BtnOpen_Click(object sender, RoutedEventArgs e)
         {
-            var input = Microsoft.VisualBasic.Interaction.InputBox(prompt + "\n\n" + string.Join("\n", items), "Вибір", "0");
-            return int.TryParse(input, out result) && result >= 0 && result < items.Length;
+            if (unsavedChanges)
+            {
+                var result = MessageBox.Show("У вас є незбережені зміни. Ви дійсно хочете відкрити новий файл?", "Попередження", MessageBoxButton.YesNo);
+                if (result != MessageBoxResult.Yes) return;
+            }
+
+            var dlg = new OpenFileDialog { Filter = "Файл JSON (*.json)|*.json" };
+            if (dlg.ShowDialog() == true)
+            {
+                OpenFile(dlg.FileName);
+            }
+        }
+
+        private bool ShowIndexSelectionDialog(string prompt, string[] items, out int result)
+        {
+            var dialog = new IndexSelectionWindow(prompt, items);
+            dialog.Owner = this;
+
+            if (dialog.ShowDialog() == true)
+            {
+                result = dialog.SelectedIndex;
+                return true;
+            }
+
+            result = -1;
+            return false;
         }
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -232,20 +275,16 @@ namespace Array_Translate_Tool
 
                     if (transArr == null)
                     {
-                        // Якщо немає масиву, створюємо
                         transArr = new JArray();
                         item["translationText"] = new JObject { ["Array"] = transArr };
                     }
 
-                    // Для нового формату: індекси у transArr на 0 базі, але 0 — це Original у "text"
-                    // Тому для langIndex == 0 оновлюємо "text", інакше — translationText.Array[langIndex - 1]
                     if (langIndex == 0)
                     {
                         item["text"] = entry.Translation.Replace("\r\n", "\n");
                     }
                     else
                     {
-                        // Запевняємось, що індекс існує
                         while (transArr.Count < langIndex)
                             transArr.Add("");
 
@@ -285,7 +324,7 @@ namespace Array_Translate_Tool
             var dlg = new SaveFileDialog
             {
                 FileName = "N_" + System.IO.Path.GetFileName(jsonPath),
-                Filter = "JSON Files (*.json)|*.json"
+                Filter = "Файл JSON (*.json)|*.json"
             };
             if (dlg.ShowDialog() == true)
             {
@@ -298,7 +337,7 @@ namespace Array_Translate_Tool
 
         private void BtnLoadTranslation_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog { Filter = "JSON Files (*.json)|*.json" };
+            var dlg = new OpenFileDialog { Filter = "Файл JSON (*.json)|*.json" };
             if (dlg.ShowDialog() != true) return;
 
             var data = JToken.Parse(File.ReadAllText(dlg.FileName));
@@ -415,7 +454,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.5.2";
+            var baseTitle = "Array Localization Tool 2.6";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -469,7 +508,7 @@ namespace Array_Translate_Tool
             var dlg = new SaveFileDialog
             {
                 FileName = System.IO.Path.GetFileNameWithoutExtension(jsonPath) + ".csv",
-                Filter = "CSV Files (*.csv)|*.csv"
+                Filter = "Файл CSV (*.csv)|*.csv"
             };
             if (dlg.ShowDialog() != true) return;
 
@@ -500,7 +539,7 @@ namespace Array_Translate_Tool
 
         private void BtnImportCsv_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog { Filter = "CSV Files (*.csv)|*.csv" };
+            var dlg = new OpenFileDialog { Filter = "Файл CSV (*.csv)|*.csv" };
             if (dlg.ShowDialog() != true) return;
 
             try
@@ -576,7 +615,7 @@ namespace Array_Translate_Tool
 
         private void BtnRestoreAll_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Увага: Поточний переклад буде втрачено.\n\nВи дійсно хочете повернути оригінал у всі рядки?",
+            if (MessageBox.Show("Увага: Поточний переклад буде втрачено.\n\nВи дійсно хочете повернути оригінал в усі рядки?",
                 "Попередження", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 foreach (var entry in terms)
@@ -685,7 +724,7 @@ namespace Array_Translate_Tool
             if (unsavedChanges)
             {
                 var res = MessageBox.Show("Бажаєте зберегти перед виходом?", "Вихід",
-                    MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                    MessageBoxButton.YesNoCancel);
                 if (res == MessageBoxResult.Yes)
                     BtnSave_Click(null, null);
                 else if (res == MessageBoxResult.Cancel)
@@ -700,9 +739,21 @@ namespace Array_Translate_Tool
             BtnNext.IsEnabled = hasMatches;
         }
 
+        private void BtnAbout_Click(object sender, RoutedEventArgs e)
+        {
+            var aboutWindow = new AboutWindow();
+            aboutWindow.Owner = this;
+            aboutWindow.ShowDialog();
+        }
+
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.S)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.O)
+            {
+                BtnOpen_Click(null, null);
+                e.Handled = true;
+            }
+            else if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.S)
             {
                 BtnSave_Click(null, null);
                 e.Handled = true;
