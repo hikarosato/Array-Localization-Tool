@@ -1,1 +1,1 @@
-# Array Translate Tool 2
+# Array Localization Tool
