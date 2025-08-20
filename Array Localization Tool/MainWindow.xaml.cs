@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -44,6 +45,7 @@ namespace Array_Translate_Tool
             SetControlsEnabled(false);
             BtnOpen.IsEnabled = true;
             UpdateNavigationButtons();
+            DataGridTerms.PreviewKeyDown += DataGridTerms_PreviewKeyDown;
         }
 
         private void SetControlsEnabled(bool state)
@@ -454,7 +456,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.6";
+            var baseTitle = "Array Localization Tool 2.6.1";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -744,6 +746,31 @@ namespace Array_Translate_Tool
             var aboutWindow = new AboutWindow();
             aboutWindow.Owner = this;
             aboutWindow.ShowDialog();
+        }
+
+        private void DataGridTerms_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                var cell = DataGridTerms.CurrentCell;
+                if (cell != null && cell.Item != null)
+                {
+                    // Витягуємо значення конкретної комірки
+                    var column = cell.Column as DataGridBoundColumn;
+                    if (column != null)
+                    {
+                        var binding = column.Binding as Binding;
+                        if (binding != null)
+                        {
+                            var propertyName = binding.Path.Path;
+                            var rowData = cell.Item;
+                            var value = rowData.GetType().GetProperty(propertyName)?.GetValue(rowData, null)?.ToString();
+                            Clipboard.SetText(value ?? string.Empty);
+                            e.Handled = true; // щоб стандартне копіювання не спрацювало
+                        }
+                    }
+                }
+            }
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)

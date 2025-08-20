@@ -20,7 +20,7 @@ namespace Array_Translate_Tool
                 }
                 else
                 {
-                    MessageBox.Show("Програма працює лише з файлами JSON. Перетягніть коректний файл.", "Помилка");
+                    MessageBox.Show("Програма працює лише з файлами JSON.", "Помилка");
                 }
             }
         }
