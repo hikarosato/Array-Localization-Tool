@@ -1,0 +1,21 @@
+﻿<Window x:Class="Array_Translate_Tool.IndexForJSON"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:Array_Translate_Tool"
+        Title="Вибір індексу для імпорту перекладу" Height="250" Width="310"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="LblPrompt" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+        <ListBox x:Name="ListBoxIndices" Grid.Row="1"
+                 SelectionChanged="ListBoxIndices_SelectionChanged"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="BtnOk" Content="OK" Width="80" Margin="5,0" IsEnabled="False" Click="BtnOk_Click"/>
+            <Button x:Name="BtnCancel" Content="Скасувати" Width="80" Margin="5,0" Click="BtnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

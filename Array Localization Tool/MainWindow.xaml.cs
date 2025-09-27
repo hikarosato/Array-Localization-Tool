@@ -56,6 +56,7 @@ namespace Array_Translate_Tool
             BtnImportCsv.IsEnabled = state;
             TxtSearch.IsEnabled = state;
             ChkCase.IsEnabled = state;
+            ChkExact.IsEnabled = state;
             BtnRestoreOriginal.IsEnabled = state;
             BtnRestoreAll.IsEnabled = state;
         }
@@ -75,20 +76,17 @@ namespace Array_Translate_Tool
 
                 if (isItemsFormat)
                 {
-                    // Старий формат
                     termsArray = (JArray)jsonData["Items"];
                     langsArray = jsonData["Languages"] as JArray;
                 }
                 else if (jsonData["lines"]?["Array"] is JArray linesArray && jsonData["languages"]?["Array"] is JArray languagesArray)
                 {
-                    // Новий формат
                     termsArray = linesArray;
                     langsArray = languagesArray;
                     isNewFormat = true;
                 }
                 else
                 {
-                    // Спроба взяти інші варіанти з json
                     termsArray = GetTermsArray(jsonData) as JArray;
                     langsArray = GetLangsArray(jsonData) as JArray;
                 }
@@ -134,7 +132,6 @@ namespace Array_Translate_Tool
 
                     if (isNewFormat)
                     {
-                        // Новий формат: беремо lineID як ідентифікатор
                         string term = item["lineID"]?.ToString() ?? i.ToString();
 
                         var transArr = item["translationText"]?["Array"] as JArray;
@@ -167,7 +164,6 @@ namespace Array_Translate_Tool
                     }
                     else
                     {
-                        // Старий формат
                         string term = isItemsFormat ? (string)item["Id"] : (string)item["Term"];
                         var langs = isItemsFormat
                             ? item["Texts"]?.ToList()
@@ -342,25 +338,29 @@ namespace Array_Translate_Tool
             var dlg = new OpenFileDialog { Filter = "Файл JSON (*.json)|*.json" };
             if (dlg.ShowDialog() != true) return;
 
-            var data = JToken.Parse(File.ReadAllText(dlg.FileName));
+            JToken data;
+            try
+            {
+                data = JToken.Parse(File.ReadAllText(dlg.FileName));
+            }
+            catch
+            {
+                MessageBox.Show("Не вдалося відкрити JSON-файл.", "Помилка");
+                return;
+            }
 
+            JArray sourceTerms = null;
             bool isItemsFormat = data["Items"] is JArray;
             bool isNewFormat = data["lines"]?["Array"] is JArray;
 
-            JArray sourceTerms = null;
-
             if (isItemsFormat)
-            {
                 sourceTerms = (JArray)data["Items"];
-            }
             else if (isNewFormat)
-            {
                 sourceTerms = (JArray)data["lines"]["Array"];
-            }
+            else if (data["mSource"]?["mTerms"]?["Array"] is JArray arrTerms)
+                sourceTerms = arrTerms;
             else
-            {
                 sourceTerms = GetTermsArray(data) as JArray;
-            }
 
             if (sourceTerms == null)
             {
@@ -368,57 +368,87 @@ namespace Array_Translate_Tool
                 return;
             }
 
-            var dict = new Dictionary<string, string>();
+            JArray langsArray = null;
+            if (data["languages"]?["Array"] is JArray arr1)
+                langsArray = arr1;
+            else if (data["Languages"] is JArray arr2)
+                langsArray = arr2;
+            else if (data["mLanguages"]?["Array"] is JArray arr3)
+                langsArray = arr3;
+            else if (data["mSource"]?["mLanguages"]?["Array"] is JArray arr4)
+                langsArray = arr4;
 
-            if (isItemsFormat)
+            var preview = new List<string>();
+            if (langsArray != null && langsArray.Count > 0)
             {
-                foreach (var t in sourceTerms)
+                for (int i = 0; i < langsArray.Count; i++)
                 {
-                    var id = (string)t["Id"];
-                    var texts = t["Texts"] as JArray;
-                    if (id != null && texts != null && texts.Count > langIndex)
-                    {
-                        var val = texts[langIndex]?.ToString().Trim() ?? "";
-                        dict[id] = val;
-                    }
-                }
-            }
-            else if (isNewFormat)
-            {
-                foreach (var t in sourceTerms)
-                {
-                    var term = (string)t["lineID"]?.ToString();
-                    if (term == null) continue;
+                    var l = langsArray[i];
+                    string name = null;
 
-                    string val = "";
-
-                    if (langIndex == 0)
+                    if (l.Type == JTokenType.Object)
                     {
-                        val = (string)t["text"] ?? "";
+                        name = l["Name"]?.ToString();
+                        if (string.IsNullOrEmpty(name))
+                            name = $"Мова {i}";
                     }
                     else
                     {
-                        var arr = t["translationText"]?["Array"] as JArray;
-                        if (arr != null && arr.Count >= langIndex)
-                            val = arr[langIndex - 1]?.ToString() ?? "";
+                        name = l.ToString();
                     }
 
-                    val = val.Trim();
-                    dict[term] = val;
+                    preview.Add($"{i}: {name}");
                 }
             }
             else
             {
-                foreach (var t in sourceTerms)
+                preview.Add("0: Мова 0");
+            }
+
+            var indexDialog = new IndexForJSON("Оберіть індекс перекладу:", preview);
+            if (indexDialog.ShowDialog() != true || indexDialog.SelectedIndex < 0)
+                return;
+
+            int chosenIndex = indexDialog.SelectedIndex;
+            var dict = new Dictionary<string, string>();
+
+            foreach (var t in sourceTerms)
+            {
+                string term = null;
+                string val = "";
+
+                if (isItemsFormat)
                 {
-                    var term = (string)t["Term"];
-                    var langsArray = t["Languages"]?["Array"] as JArray;
-                    if (term != null && langsArray != null && langsArray.Count > langIndex)
-                    {
-                        var val = langsArray[langIndex]?.ToString().Trim() ?? "";
-                        dict[term] = val;
-                    }
+                    term = (string)t["Id"];
+                    var texts = t["Texts"] as JArray;
+                    if (texts != null && texts.Count > chosenIndex)
+                        val = texts[chosenIndex]?.ToString().Trim() ?? "";
                 }
+                else if (isNewFormat)
+                {
+                    term = (string)t["lineID"]?.ToString();
+                    if (term == null) continue;
+
+                    if (chosenIndex == 0)
+                        val = (string)t["text"] ?? "";
+                    else
+                    {
+                        var arr = t["translationText"]?["Array"] as JArray;
+                        if (arr != null && arr.Count >= chosenIndex)
+                            val = arr[chosenIndex - 1]?.ToString() ?? "";
+                    }
+                    val = val.Trim();
+                }
+                else
+                {
+                    term = (string)t["Term"];
+                    var langs = t["Languages"]?["Array"] as JArray;
+                    if (term != null && langs != null && langs.Count > chosenIndex)
+                        val = langs[chosenIndex]?.ToString().Trim() ?? "";
+                }
+
+                if (!string.IsNullOrEmpty(term))
+                    dict[term] = val;
             }
 
             bool changed = false;
@@ -456,7 +486,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.6.1";
+            var baseTitle = "Array Localization Tool 2.7";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -660,14 +690,29 @@ namespace Array_Translate_Tool
 
             Func<string, bool> matcher;
 
-            if (ChkCase.IsChecked == true)
+            if (ChkExact.IsChecked == true)
             {
-                matcher = s => s.Contains(query);
+                if (ChkCase.IsChecked == true)
+                {
+                    matcher = s => s == query;
+                }
+                else
+                {
+                    var queryLower = query.ToLower();
+                    matcher = s => s.ToLower() == queryLower;
+                }
             }
             else
             {
-                var queryLower = query.ToLower();
-                matcher = s => s.ToLower().Contains(queryLower);
+                if (ChkCase.IsChecked == true)
+                {
+                    matcher = s => s.Contains(query);
+                }
+                else
+                {
+                    var queryLower = query.ToLower();
+                    matcher = s => s.ToLower().Contains(queryLower);
+                }
             }
 
             matchIndices = terms
@@ -755,7 +800,6 @@ namespace Array_Translate_Tool
                 var cell = DataGridTerms.CurrentCell;
                 if (cell != null && cell.Item != null)
                 {
-                    // Витягуємо значення конкретної комірки
                     var column = cell.Column as DataGridBoundColumn;
                     if (column != null)
                     {
@@ -766,7 +810,7 @@ namespace Array_Translate_Tool
                             var rowData = cell.Item;
                             var value = rowData.GetType().GetProperty(propertyName)?.GetValue(rowData, null)?.ToString();
                             Clipboard.SetText(value ?? string.Empty);
-                            e.Handled = true; // щоб стандартне копіювання не спрацювало
+                            e.Handled = true;
                         }
                     }
                 }

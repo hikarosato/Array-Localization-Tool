@@ -1,5 +1,5 @@
 ﻿<Window x:Class="Array_Translate_Tool.AboutWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="200" Width="440"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="200" Width="350"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False">
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -11,9 +11,11 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Array Localization Tool" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="1" Text="Версія 2.6.1" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+        <TextBlock Grid.Row="1" Text="Версія 2.7" HorizontalAlignment="Center" Margin="0,5,0,0"/>
         <TextBlock Grid.Row="2" Text="© 2025 Hikaro/Галицький Розбишака" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-        <TextBlock Grid.Row="3" TextWrapping="Wrap" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center"><Run Language="uk-ua" Text="Програма"/><Run Text=" для перекладу та роботи з масивами JSON-файлів для Unity."/></TextBlock>
+        <TextBlock Grid.Row="3" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center">
+            Програма для перекладу та роботи з багатомовними масивами JSON-файлів для Unity.
+        </TextBlock>
 
         <Button Grid.Row="4" Content="ОК" Width="80" Height="25" HorizontalAlignment="Center" Click="Ok_Click" Margin="0,10,0,0"/>
     </Grid>
