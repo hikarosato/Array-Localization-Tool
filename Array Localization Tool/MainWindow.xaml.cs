@@ -486,7 +486,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.7";
+            var baseTitle = "Array Localization Tool 2.7.1";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -717,7 +717,7 @@ namespace Array_Translate_Tool
 
             matchIndices = terms
                 .Select((e, i) => new { e, i })
-                .Where(x => matcher(x.e.Original) || matcher(x.e.Translation))
+                .Where(x => matcher(x.e.Original) || matcher(x.e.Translation) || matcher(x.e.Term))
                 .Select(x => x.i)
                 .ToArray();
 
