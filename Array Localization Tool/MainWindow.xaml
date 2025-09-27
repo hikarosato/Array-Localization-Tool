@@ -9,7 +9,7 @@
                     <MenuItem x:Name="BtnSave" Header="Зберегти як..." Click="BtnSave_Click" InputGestureText="Ctrl+S"/>
                 </MenuItem>
                 <MenuItem Header="Редагувати">
-                    <MenuItem x:Name="BtnLoadTranslation" Header="Підтягнути переклад з JSON" Click="BtnLoadTranslation_Click"/>
+                    <MenuItem x:Name="BtnLoadTranslation" Header="Імпорт з JSON" Click="BtnLoadTranslation_Click"/>
                     <Separator />
                     <MenuItem x:Name="BtnExportCsv" Header="Експорт у CSV" Click="BtnExportCsv_Click"/>
                     <MenuItem x:Name="BtnImportCsv" Header="Імпорт з CSV" Click="BtnImportCsv_Click"/>
