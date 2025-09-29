@@ -54,7 +54,9 @@ namespace Array_Translate_Tool
             BtnLoadTranslation.IsEnabled = state;
             BtnExportCsv.IsEnabled = state;
             BtnImportCsv.IsEnabled = state;
+            TglSearchByID.IsEnabled = state;
             TxtSearch.IsEnabled = state;
+            BtnSearch.IsEnabled = state;
             ChkCase.IsEnabled = state;
             ChkExact.IsEnabled = state;
             BtnRestoreOriginal.IsEnabled = state;
@@ -191,6 +193,8 @@ namespace Array_Translate_Tool
                 DataGridTerms.Visibility = Visibility.Visible;
                 SetControlsEnabled(true);
                 unsavedChanges = false;
+                StatsPanel.Visibility = Visibility.Visible;
+                UpdateStats();
                 UpdateTitle();
             }
             catch (FileNotFoundException)
@@ -328,6 +332,7 @@ namespace Array_Translate_Tool
             {
                 File.WriteAllText(dlg.FileName, jsonData.ToString(Newtonsoft.Json.Formatting.Indented), new UTF8Encoding(false));
                 unsavedChanges = false;
+                UpdateStats();
                 UpdateTitle();
                 MessageBox.Show("Збережено!");
             }
@@ -466,6 +471,7 @@ namespace Array_Translate_Tool
             {
                 DataGridTerms.Items.Refresh();
                 unsavedChanges = terms.Any(t => t.IsModified);
+                UpdateStats();
                 UpdateTitle();
             }
             else
@@ -486,7 +492,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.7.1";
+            var baseTitle = "Array Localization Tool 2.8";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -525,6 +531,7 @@ namespace Array_Translate_Tool
                     unsavedChanges = true;
                     UpdateTitle();
                     DataGridTerms.Items.Refresh();
+                    UpdateStats();
                 }
             }
         }
@@ -616,6 +623,7 @@ namespace Array_Translate_Tool
                     {
                         DataGridTerms.Items.Refresh();
                         unsavedChanges = true;
+                        UpdateStats();
                         UpdateTitle();
                         MessageBox.Show("Імпортовано успішно.");
                     }
@@ -642,6 +650,7 @@ namespace Array_Translate_Tool
                 unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateTitle();
                 DataGridTerms.Items.Refresh();
+                UpdateStats();
             }
         }
 
@@ -664,6 +673,7 @@ namespace Array_Translate_Tool
                 DataGridTerms.Items.Refresh();
 
                 unsavedChanges = terms.Any(t => t.IsModified);
+                UpdateStats();
                 UpdateTitle();
             }
         }
@@ -674,6 +684,7 @@ namespace Array_Translate_Tool
             {
                 var binding = (e.EditingElement as TextBox)?.GetBindingExpression(TextBox.TextProperty);
                 binding?.UpdateSource();
+                UpdateStats();
             }
         }
 
@@ -717,7 +728,13 @@ namespace Array_Translate_Tool
 
             matchIndices = terms
                 .Select((e, i) => new { e, i })
-                .Where(x => matcher(x.e.Original) || matcher(x.e.Translation) || matcher(x.e.Term))
+                .Where(x =>
+                {
+                    if (TglSearchByID.IsChecked == true)
+                        return matcher(x.e.Term);
+                    else
+                        return matcher(x.e.Original) || matcher(x.e.Translation);
+                })
                 .Select(x => x.i)
                 .ToArray();
 
@@ -739,6 +756,21 @@ namespace Array_Translate_Tool
                 timer.Start();
             }
             UpdateNavigationButtons();
+        }
+
+        private void BtnSearch_Click(object sender, RoutedEventArgs e)
+        {
+            SearchText();
+        }
+
+        private void TglSearchByID_Checked(object sender, RoutedEventArgs e)
+        {
+            TglSearchByID.Content = "ID";
+        }
+
+        private void TglSearchByID_Unchecked(object sender, RoutedEventArgs e)
+        {
+            TglSearchByID.Content = "Текст";
         }
 
         private void BtnPrev_Click(object sender, RoutedEventArgs e)
@@ -791,6 +823,22 @@ namespace Array_Translate_Tool
             var aboutWindow = new AboutWindow();
             aboutWindow.Owner = this;
             aboutWindow.ShowDialog();
+        }
+
+        private void UpdateStats()
+        {
+            int totalRows = terms.Count;
+            int totalWords = terms.Sum(t => string.IsNullOrWhiteSpace(t.Translation)
+                ? 0
+                : t.Translation.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length);
+
+            int translatedRows = terms.Count(t => t.IsModified);
+            double percent = totalRows > 0 ? (translatedRows * 100.0 / totalRows) : 0;
+
+            LblTotalRows.Text = totalRows.ToString();
+            LblTotalWords.Text = totalWords.ToString();
+            LblTranslatedRows.Text = translatedRows.ToString();
+            LblTranslatedPercent.Text = percent.ToString("0.0") + "%";
         }
 
         private void DataGridTerms_PreviewKeyDown(object sender, KeyEventArgs e)
