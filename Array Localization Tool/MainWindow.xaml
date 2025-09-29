@@ -72,7 +72,7 @@
                     <TextBlock x:Name="LblTotalWords" FontWeight="Bold" Margin="0,0,20,0"/>
                     <TextBlock Text="Перекладено рядків: "/>
                     <TextBlock x:Name="LblTranslatedRows" FontWeight="Bold" Margin="0,0,20,0"/>
-                    <TextBlock Text="% перекладеного: "/>
+                    <TextBlock Text="У відсотках: "/>
                     <TextBlock x:Name="LblTranslatedPercent" FontWeight="Bold" Margin="0,0,20,0"/>
                 </StackPanel>
 
