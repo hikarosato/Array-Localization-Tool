@@ -976,7 +976,7 @@ namespace Array_Translate_Tool
                 if (string.IsNullOrWhiteSpace(t.Translation))
                     return 0;
 
-                var textWithoutMarkers = t.Translation.Replace("<\\rn>", " ").Replace("<\\n>", " ");
+                var textWithoutMarkers = t.Translation.Replace("<\\rn>", " ").Replace("<\\r>", " ").Replace("<\\n>", " ");
                 return textWithoutMarkers.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
             });
 
@@ -993,14 +993,14 @@ namespace Array_Translate_Tool
         {
             if (string.IsNullOrEmpty(text))
                 return text;
-            return text.Replace("\r\n", "<\\rn>").Replace("\n", "<\\n>");
+            return text.Replace("\r\n", "<\\rn>").Replace("\r", "<\\r>").Replace("\n", "<\\n>");
         }
 
         private string ConvertMarkersToNewlines(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return text;
-            return text.Replace("<\\rn>", "\r\n").Replace("<\\n>", "\n");
+            return text.Replace("<\\rn>", "\r\n").Replace("<\\r>", "\r").Replace("<\\n>", "\n");
         }
 
         private void DataGridTerms_PreviewKeyDown(object sender, KeyEventArgs e)
