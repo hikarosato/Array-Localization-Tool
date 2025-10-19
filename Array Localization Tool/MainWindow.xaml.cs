@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,14 +20,49 @@ namespace Array_Translate_Tool
 {
     public partial class MainWindow : Window
     {
-        public class TermEntry
+        public class TermEntry : INotifyPropertyChanged
         {
+            private string _translation;
+            private bool _isModified;
+
             public int Number { get; set; }
             public string Term { get; set; }
             public string Original { get; set; }
-            public string Translation { get; set; }
+
+            public string Translation
+            {
+                get => _translation;
+                set
+                {
+                    if (_translation != value)
+                    {
+                        _translation = value;
+                        OnPropertyChanged(nameof(Translation));
+                    }
+                }
+            }
+
             public int JsonIndex { get; set; }
-            public bool IsModified { get; set; }
+
+            public bool IsModified
+            {
+                get => _isModified;
+                set
+                {
+                    if (_isModified != value)
+                    {
+                        _isModified = value;
+                        OnPropertyChanged(nameof(IsModified));
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         private ObservableCollection<TermEntry> terms = new ObservableCollection<TermEntry>();
@@ -158,8 +194,8 @@ namespace Array_Translate_Tool
                             {
                                 Number = terms.Count + 1,
                                 Term = term,
-                                Original = orig,
-                                Translation = trans,
+                                Original = ConvertNewlinesToMarkers(orig),
+                                Translation = ConvertNewlinesToMarkers(trans),
                                 JsonIndex = i
                             });
                         }
@@ -181,8 +217,8 @@ namespace Array_Translate_Tool
                                 {
                                     Number = terms.Count + 1,
                                     Term = term,
-                                    Original = orig,
-                                    Translation = trans,
+                                    Original = ConvertNewlinesToMarkers(orig),
+                                    Translation = ConvertNewlinesToMarkers(trans),
                                     JsonIndex = i
                                 });
                             }
@@ -283,14 +319,14 @@ namespace Array_Translate_Tool
 
                     if (langIndex == 0)
                     {
-                        item["text"] = entry.Translation.Replace("\r\n", "\n");
+                        item["text"] = ConvertMarkersToNewlines(entry.Translation);
                     }
                     else
                     {
                         while (transArr.Count < langIndex)
                             transArr.Add("");
 
-                        transArr[langIndex - 1] = entry.Translation.Replace("\r\n", "\n");
+                        transArr[langIndex - 1] = ConvertMarkersToNewlines(entry.Translation);
                     }
                 }
                 else
@@ -305,7 +341,7 @@ namespace Array_Translate_Tool
                         }
                         while (texts.Count <= langIndex)
                             texts.Add("");
-                        texts[langIndex] = entry.Translation.Replace("\r\n", "\n");
+                        texts[langIndex] = ConvertMarkersToNewlines(entry.Translation);
                     }
                     else
                     {
@@ -318,7 +354,7 @@ namespace Array_Translate_Tool
                         }
                         while (langArray.Count <= langIndex)
                             langArray.Add("");
-                        langArray[langIndex] = entry.Translation.Replace("\r\n", "\n");
+                        langArray[langIndex] = ConvertMarkersToNewlines(entry.Translation);
                     }
                 }
             }
@@ -461,7 +497,7 @@ namespace Array_Translate_Tool
             {
                 if (dict.TryGetValue(entry.Term, out var value) && value != entry.Translation)
                 {
-                    entry.Translation = value;
+                    entry.Translation = ConvertNewlinesToMarkers(value);
                     entry.IsModified = entry.Translation != entry.Original;
                     changed = true;
                 }
@@ -492,7 +528,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.8";
+            var baseTitle = "Array Localization Tool 2.9";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -530,7 +566,6 @@ namespace Array_Translate_Tool
                     entry.IsModified = entry.Translation != entry.Original;
                     unsavedChanges = true;
                     UpdateTitle();
-                    DataGridTerms.Items.Refresh();
                     UpdateStats();
                 }
             }
@@ -557,7 +592,6 @@ namespace Array_Translate_Tool
                 ShouldQuote = args => true
             }))
             {
-                csv.WriteField("№");
                 csv.WriteField("ID");
                 csv.WriteField("Оригінал");
                 csv.WriteField("Переклад");
@@ -565,7 +599,6 @@ namespace Array_Translate_Tool
 
                 foreach (var entry in terms)
                 {
-                    csv.WriteField(entry.Number);
                     csv.WriteField(entry.Term);
                     csv.WriteField(entry.Original);
                     csv.WriteField(entry.Translation);
@@ -580,7 +613,6 @@ namespace Array_Translate_Tool
         {
             var dlg = new OpenFileDialog { Filter = "Файл CSV (*.csv)|*.csv" };
             if (dlg.ShowDialog() != true) return;
-
             try
             {
                 using (var reader = new StreamReader(dlg.FileName, Encoding.UTF8))
@@ -596,29 +628,29 @@ namespace Array_Translate_Tool
                 {
                     var records = csv.GetRecords<dynamic>().ToList();
                     bool changed = false;
-
                     foreach (var record in records)
                     {
                         var dict = record as IDictionary<string, object>;
                         if (dict == null || !dict.ContainsKey("ID")) continue;
-
                         string term = dict["ID"]?.ToString();
                         string translation = dict.ContainsKey("Переклад")
                             ? dict["Переклад"]?.ToString()
                             : (dict.ContainsKey("Translation") ? dict["Translation"]?.ToString() : null);
-
                         if (term != null && translation != null)
                         {
                             var entry = terms.FirstOrDefault(t => t.Term == term);
-                            if (entry != null && entry.Translation != translation)
+                            if (entry != null)
                             {
-                                entry.Translation = translation;
-                                entry.IsModified = entry.Translation != entry.Original;
-                                changed = true;
+                                var translationWithMarkers = ConvertNewlinesToMarkers(translation);
+                                if (entry.Translation != translationWithMarkers)
+                                {
+                                    entry.Translation = translationWithMarkers;
+                                    entry.IsModified = entry.Translation != entry.Original;
+                                    changed = true;
+                                }
                             }
                         }
                     }
-
                     if (changed)
                     {
                         DataGridTerms.Items.Refresh();
@@ -699,31 +731,18 @@ namespace Array_Translate_Tool
             var query = TxtSearch.Text.Trim();
             if (string.IsNullOrEmpty(query)) return;
 
-            Func<string, bool> matcher;
+            StringComparison comparison = ChkCase.IsChecked == true
+                ? StringComparison.Ordinal
+                : StringComparison.OrdinalIgnoreCase;
 
+            Func<string, bool> matcher;
             if (ChkExact.IsChecked == true)
             {
-                if (ChkCase.IsChecked == true)
-                {
-                    matcher = s => s == query;
-                }
-                else
-                {
-                    var queryLower = query.ToLower();
-                    matcher = s => s.ToLower() == queryLower;
-                }
+                matcher = s => s.Equals(query, comparison);
             }
             else
             {
-                if (ChkCase.IsChecked == true)
-                {
-                    matcher = s => s.Contains(query);
-                }
-                else
-                {
-                    var queryLower = query.ToLower();
-                    matcher = s => s.ToLower().Contains(queryLower);
-                }
+                matcher = s => s.IndexOf(query, comparison) >= 0;
             }
 
             matchIndices = terms
@@ -828,9 +847,14 @@ namespace Array_Translate_Tool
         private void UpdateStats()
         {
             int totalRows = terms.Count;
-            int totalWords = terms.Sum(t => string.IsNullOrWhiteSpace(t.Translation)
-                ? 0
-                : t.Translation.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length);
+            int totalWords = terms.Sum(t =>
+            {
+                if (string.IsNullOrWhiteSpace(t.Translation))
+                    return 0;
+
+                var textWithoutMarkers = t.Translation.Replace("<\\rn>", " ").Replace("<\\n>", " ");
+                return textWithoutMarkers.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            });
 
             int translatedRows = terms.Count(t => t.IsModified);
             double percent = totalRows > 0 ? (translatedRows * 100.0 / totalRows) : 0;
@@ -839,6 +863,20 @@ namespace Array_Translate_Tool
             LblTotalWords.Text = totalWords.ToString();
             LblTranslatedRows.Text = translatedRows.ToString();
             LblTranslatedPercent.Text = percent.ToString("0.0") + "%";
+        }
+
+        private string ConvertNewlinesToMarkers(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+            return text.Replace("\r\n", "<\\rn>").Replace("\n", "<\\n>");
+        }
+
+        private string ConvertMarkersToNewlines(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+            return text.Replace("<\\rn>", "\r\n").Replace("<\\n>", "\n");
         }
 
         private void DataGridTerms_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -874,13 +912,18 @@ namespace Array_Translate_Tool
             }
             else if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.S)
             {
-                BtnSave_Click(null, null);
+                if (BtnSave.IsEnabled)
+                    BtnSave_Click(null, null);
                 e.Handled = true;
             }
             else if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                TxtSearch.Focus();
-                TxtSearch.SelectAll();
+                if (TxtSearch.IsEnabled)
+                {
+                    TxtSearch.Focus();
+                    TxtSearch.SelectAll();
+                }
+                e.Handled = true;
             }
             else if (e.Key == Key.Escape)
             {

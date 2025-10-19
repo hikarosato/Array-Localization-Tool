@@ -1,22 +1,29 @@
 ﻿<Window x:Class="Array_Translate_Tool.AboutWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="200" Width="350"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="320" Width="430"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Array Localization Tool" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Row="1" Text="Версія 2.8" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+        <TextBlock Grid.Row="1" Text="Версія 2.9" HorizontalAlignment="Center" Margin="0,5,0,0"/>
         <TextBlock Grid.Row="2" Text="© 2025 Hikaro/Галицький Розбишака" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-        <TextBlock Grid.Row="3" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center">
-            Програма для перекладу та роботи з багатомовними масивами JSON-файлів для Unity.
+        <TextBlock Grid.Row="3" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Margin="0,10,0,10">
+            Програма для перекладу та роботи<LineBreak/>з багатомовними масивами JSON-файлів для Unity.
         </TextBlock>
-
-        <Button Grid.Row="4" Content="ОК" Width="80" Height="25" HorizontalAlignment="Center" Click="Ok_Click" Margin="0,10,0,0"/>
+        <TextBlock Grid.Row="4" TextWrapping="Wrap" HorizontalAlignment="Center"  VerticalAlignment="Center" TextAlignment="Center">
+            <Bold>Довідка:</Bold><LineBreak/>
+            <Bold>\r\n</Bold> замінено на <Bold>&lt;\rn&gt;</Bold><LineBreak/>
+            <Bold>\n</Bold> замінено на <Bold>&lt;\n&gt;</Bold><LineBreak/>
+            Для створення нових рядків у перекладі використовуйте дані теги.<LineBreak/>
+            При збереженні файлу <Bold>&lt;\rn&gt;</Bold> і <Bold>&lt;\n&gt;</Bold> конвертуються назад —<LineBreak/>у звичайні <Bold>\r\n</Bold> і <Bold>\n</Bold>.
+        </TextBlock>
+        <Button Grid.Row="5" Content="ОК" Width="80" Height="25" HorizontalAlignment="Center" Click="Ok_Click" Margin="0,10,0,0"/>
     </Grid>
 </Window>
