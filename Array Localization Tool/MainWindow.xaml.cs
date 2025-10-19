@@ -73,6 +73,7 @@ namespace Array_Translate_Tool
         private bool unsavedChanges = false;
         private int[] matchIndices = new int[0];
         private int currentMatch = -1;
+        private bool isStringTableFormat = false;
 
         public MainWindow()
         {
@@ -105,6 +106,16 @@ namespace Array_Translate_Tool
             {
                 jsonPath = filePath;
                 jsonData = JToken.Parse(File.ReadAllText(jsonPath));
+
+                if (jsonData["m_TableData"]?["Array"] is JArray stringTableArray &&
+                    jsonData["m_LocaleId"]?["m_Code"] != null)
+                {
+                    isStringTableFormat = true;
+                    LoadStringTableFormat(stringTableArray);
+                    return;
+                }
+
+                isStringTableFormat = false;
 
                 bool isItemsFormat = jsonData["Items"] is JArray;
                 bool isNewFormat = false;
@@ -247,6 +258,39 @@ namespace Array_Translate_Tool
             }
         }
 
+        private void LoadStringTableFormat(JArray tableArray)
+        {
+            string localeCode = jsonData["m_LocaleId"]?["m_Code"]?.ToString() ?? "Unknown";
+
+            terms.Clear();
+
+            for (int i = 0; i < tableArray.Count; i++)
+            {
+                var item = tableArray[i];
+                string id = item["m_Id"]?.ToString() ?? i.ToString();
+                string text = item["m_Localized"]?.ToString() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    terms.Add(new TermEntry
+                    {
+                        Number = terms.Count + 1,
+                        Term = id,
+                        Original = ConvertNewlinesToMarkers(text),
+                        Translation = ConvertNewlinesToMarkers(text),
+                        JsonIndex = i
+                    });
+                }
+            }
+
+            DataGridTerms.Visibility = Visibility.Visible;
+            SetControlsEnabled(true);
+            unsavedChanges = false;
+            StatsPanel.Visibility = Visibility.Visible;
+            UpdateStats();
+            UpdateTitle();
+        }
+
         private void BtnOpen_Click(object sender, RoutedEventArgs e)
         {
             if (unsavedChanges)
@@ -279,6 +323,12 @@ namespace Array_Translate_Tool
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
+            if (isStringTableFormat)
+            {
+                SaveStringTableFormat();
+                return;
+            }
+
             bool isItemsFormat = jsonData["Items"] is JArray;
             bool isNewFormat = false;
 
@@ -374,6 +424,37 @@ namespace Array_Translate_Tool
             }
         }
 
+        private void SaveStringTableFormat()
+        {
+            var tableArray = jsonData["m_TableData"]["Array"] as JArray;
+            if (tableArray == null)
+            {
+                MessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
+                return;
+            }
+
+            foreach (var entry in terms)
+            {
+                var item = tableArray[entry.JsonIndex];
+                item["m_Localized"] = ConvertMarkersToNewlines(entry.Translation);
+            }
+
+            var dlg = new SaveFileDialog
+            {
+                FileName = "N_" + System.IO.Path.GetFileName(jsonPath),
+                Filter = "Файл JSON (*.json)|*.json"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                File.WriteAllText(dlg.FileName, jsonData.ToString(Newtonsoft.Json.Formatting.Indented), new UTF8Encoding(false));
+                unsavedChanges = false;
+                UpdateStats();
+                UpdateTitle();
+                MessageBox.Show("Збережено!");
+            }
+        }
+
         private void BtnLoadTranslation_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog { Filter = "Файл JSON (*.json)|*.json" };
@@ -387,6 +468,12 @@ namespace Array_Translate_Tool
             catch
             {
                 MessageBox.Show("Не вдалося відкрити JSON-файл.", "Помилка");
+                return;
+            }
+
+            if (data["m_TableData"]?["Array"] is JArray stringTableSource)
+            {
+                LoadTranslationFromStringTable(stringTableSource);
                 return;
             }
 
@@ -463,7 +550,7 @@ namespace Array_Translate_Tool
                     term = (string)t["Id"];
                     var texts = t["Texts"] as JArray;
                     if (texts != null && texts.Count > chosenIndex)
-                        val = texts[chosenIndex]?.ToString().Trim() ?? "";
+                        val = texts[chosenIndex]?.ToString() ?? "";
                 }
                 else if (isNewFormat)
                 {
@@ -478,14 +565,13 @@ namespace Array_Translate_Tool
                         if (arr != null && arr.Count >= chosenIndex)
                             val = arr[chosenIndex - 1]?.ToString() ?? "";
                     }
-                    val = val.Trim();
                 }
                 else
                 {
                     term = (string)t["Term"];
                     var langs = t["Languages"]?["Array"] as JArray;
                     if (term != null && langs != null && langs.Count > chosenIndex)
-                        val = langs[chosenIndex]?.ToString().Trim() ?? "";
+                        val = langs[chosenIndex]?.ToString() ?? "";
                 }
 
                 if (!string.IsNullOrEmpty(term))
@@ -509,6 +595,44 @@ namespace Array_Translate_Tool
                 unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateStats();
                 UpdateTitle();
+            }
+            else
+            {
+                MessageBox.Show("Немає нових перекладів.");
+            }
+        }
+
+        private void LoadTranslationFromStringTable(JArray stringTableSource)
+        {
+            var dict = new Dictionary<string, string>();
+
+            foreach (var item in stringTableSource)
+            {
+                string id = item["m_Id"]?.ToString();
+                string text = item["m_Localized"]?.ToString() ?? "";
+
+                if (!string.IsNullOrEmpty(id))
+                    dict[id] = text;
+            }
+
+            bool changed = false;
+            foreach (var entry in terms)
+            {
+                if (dict.TryGetValue(entry.Term, out var value) && value != entry.Translation)
+                {
+                    entry.Translation = ConvertNewlinesToMarkers(value);
+                    entry.IsModified = entry.Translation != entry.Original;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                DataGridTerms.Items.Refresh();
+                unsavedChanges = terms.Any(t => t.IsModified);
+                UpdateStats();
+                UpdateTitle();
+                MessageBox.Show("Переклад імпортовано!");
             }
             else
             {
@@ -657,7 +781,7 @@ namespace Array_Translate_Tool
                         unsavedChanges = true;
                         UpdateStats();
                         UpdateTitle();
-                        MessageBox.Show("Імпортовано успішно.");
+                        MessageBox.Show("Переклад імпортовано!");
                     }
                     else
                     {
