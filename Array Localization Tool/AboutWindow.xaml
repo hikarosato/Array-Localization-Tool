@@ -1,5 +1,5 @@
 ﻿<Window x:Class="Array_Translate_Tool.AboutWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="320" Width="430"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Про програму" Height="330" Width="430"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -20,9 +20,10 @@
         <TextBlock Grid.Row="4" TextWrapping="Wrap" HorizontalAlignment="Center"  VerticalAlignment="Center" TextAlignment="Center">
             <Bold>Довідка:</Bold><LineBreak/>
             <Bold>\r\n</Bold> замінено на <Bold>&lt;\rn&gt;</Bold><LineBreak/>
+            <Bold>\r</Bold> замінено на <Bold>&lt;\r&gt;</Bold><LineBreak/>
             <Bold>\n</Bold> замінено на <Bold>&lt;\n&gt;</Bold><LineBreak/>
             Для створення нових рядків у перекладі використовуйте дані теги.<LineBreak/>
-            При збереженні файлу <Bold>&lt;\rn&gt;</Bold> і <Bold>&lt;\n&gt;</Bold> конвертуються назад —<LineBreak/>у звичайні <Bold>\r\n</Bold> і <Bold>\n</Bold>.
+            При збереженні файлу <Bold>&lt;\rn&gt;</Bold>, <Bold>&lt;\r&gt;</Bold> і <Bold>&lt;\n&gt;</Bold> конвертуються назад —<LineBreak/>у звичайні <Bold>\r\n</Bold>, <Bold>\r</Bold> і <Bold>\n</Bold>.
         </TextBlock>
         <Button Grid.Row="5" Content="ОК" Width="80" Height="25" HorizontalAlignment="Center" Click="Ok_Click" Margin="0,10,0,0"/>
     </Grid>
