@@ -130,6 +130,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CustomMessage.cs" />
     <Compile Include="IndexForJSON.xaml.cs">
       <DependentUpon>IndexForJSON.xaml</DependentUpon>
     </Compile>

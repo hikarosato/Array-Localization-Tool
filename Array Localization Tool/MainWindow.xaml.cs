@@ -83,6 +83,7 @@ namespace Array_Translate_Tool
             BtnOpen.IsEnabled = true;
             UpdateNavigationButtons();
             DataGridTerms.PreviewKeyDown += DataGridTerms_PreviewKeyDown;
+            UpdateThemeButtonText();
         }
 
         private void SetControlsEnabled(bool state)
@@ -142,7 +143,7 @@ namespace Array_Translate_Tool
 
                 if (termsArray == null || langsArray == null || !langsArray.Any())
                 {
-                    MessageBox.Show("Невірна структура JSON", "Помилка");
+                    CustomMessageBox.Show("Невірна структура JSON", "Помилка");
                     return;
                 }
 
@@ -246,13 +247,13 @@ namespace Array_Translate_Tool
             }
             catch (FileNotFoundException)
             {
-                MessageBox.Show($"Файл не знайдено за шляхом: {filePath}", "Помилка");
+                CustomMessageBox.Show($"Файл не знайдено за шляхом: {filePath}", "Помилка");
                 SetControlsEnabled(false);
                 BtnOpen.IsEnabled = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Не вдалося завантажити файл. Можливо, він пошкоджений або має невірний формат.\n\nПомилка: {ex.Message}", "Помилка");
+                CustomMessageBox.Show($"Не вдалося завантажити файл. Можливо, він пошкоджений або має невірний формат.\n\nПомилка: {ex.Message}", "Помилка");
                 SetControlsEnabled(false);
                 BtnOpen.IsEnabled = true;
             }
@@ -295,8 +296,8 @@ namespace Array_Translate_Tool
         {
             if (unsavedChanges)
             {
-                var result = MessageBox.Show("У вас є незбережені зміни. Ви дійсно хочете відкрити новий файл?", "Попередження", MessageBoxButton.YesNo);
-                if (result != MessageBoxResult.Yes) return;
+                if (!CustomMessageBox.ShowYesNo("У вас є незбережені зміни. Ви дійсно хочете відкрити новий файл?", "Попередження"))
+                    return;
             }
 
             var dlg = new OpenFileDialog { Filter = "Файл JSON (*.json)|*.json" };
@@ -350,7 +351,7 @@ namespace Array_Translate_Tool
 
             if (termsArray == null)
             {
-                MessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
+                CustomMessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
                 return;
             }
 
@@ -420,7 +421,7 @@ namespace Array_Translate_Tool
                 unsavedChanges = false;
                 UpdateStats();
                 UpdateTitle();
-                MessageBox.Show("Збережено!");
+                CustomMessageBox.Show("Збережено!");
             }
         }
 
@@ -429,7 +430,7 @@ namespace Array_Translate_Tool
             var tableArray = jsonData["m_TableData"]["Array"] as JArray;
             if (tableArray == null)
             {
-                MessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
+                CustomMessageBox.Show("Неможливо зберегти: не знайдено масиву термінів", "Помилка");
                 return;
             }
 
@@ -451,7 +452,7 @@ namespace Array_Translate_Tool
                 unsavedChanges = false;
                 UpdateStats();
                 UpdateTitle();
-                MessageBox.Show("Збережено!");
+                CustomMessageBox.Show("Збережено!");
             }
         }
 
@@ -467,7 +468,7 @@ namespace Array_Translate_Tool
             }
             catch
             {
-                MessageBox.Show("Не вдалося відкрити JSON-файл.", "Помилка");
+                CustomMessageBox.Show("Не вдалося відкрити JSON-файл.", "Помилка");
                 return;
             }
 
@@ -492,7 +493,7 @@ namespace Array_Translate_Tool
 
             if (sourceTerms == null)
             {
-                MessageBox.Show("Невірна структура перекладу.", "Помилка");
+                CustomMessageBox.Show("Невірна структура перекладу.", "Помилка");
                 return;
             }
 
@@ -598,7 +599,7 @@ namespace Array_Translate_Tool
             }
             else
             {
-                MessageBox.Show("Немає нових перекладів.");
+                CustomMessageBox.Show("Немає нових перекладів.");
             }
         }
 
@@ -632,11 +633,11 @@ namespace Array_Translate_Tool
                 unsavedChanges = terms.Any(t => t.IsModified);
                 UpdateStats();
                 UpdateTitle();
-                MessageBox.Show("Переклад імпортовано!");
+                CustomMessageBox.Show("Переклад імпортовано!");
             }
             else
             {
-                MessageBox.Show("Немає нових перекладів.");
+                CustomMessageBox.Show("Немає нових перекладів.");
             }
         }
 
@@ -652,7 +653,7 @@ namespace Array_Translate_Tool
 
         private void UpdateTitle()
         {
-            var baseTitle = "Array Localization Tool 2.9";
+            var baseTitle = "Array Localization Tool 3.0";
 
             if (!string.IsNullOrEmpty(jsonPath))
             {
@@ -699,7 +700,7 @@ namespace Array_Translate_Tool
         {
             if (!terms.Any())
             {
-                MessageBox.Show("Немає даних для експорту.");
+                CustomMessageBox.Show("Немає даних для експорту.");
                 return;
             }
 
@@ -730,7 +731,7 @@ namespace Array_Translate_Tool
                 }
             }
 
-            MessageBox.Show("Експортовано у CSV.");
+            CustomMessageBox.Show("Експортовано у CSV.");
         }
 
         private void BtnImportCsv_Click(object sender, RoutedEventArgs e)
@@ -781,17 +782,17 @@ namespace Array_Translate_Tool
                         unsavedChanges = true;
                         UpdateStats();
                         UpdateTitle();
-                        MessageBox.Show("Переклад імпортовано!");
+                        CustomMessageBox.Show("Переклад імпортовано!");
                     }
                     else
                     {
-                        MessageBox.Show("Немає нових перекладів.");
+                        CustomMessageBox.Show("Немає нових перекладів.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Помилка імпорту:\n" + ex.Message);
+                CustomMessageBox.Show("Помилка імпорту:\n" + ex.Message);
             }
         }
 
@@ -812,8 +813,8 @@ namespace Array_Translate_Tool
 
         private void BtnRestoreAll_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Увага: Поточний переклад буде втрачено.\n\nВи дійсно хочете повернути оригінал в усі рядки?",
-                "Попередження", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (CustomMessageBox.ShowYesNo("Увага: Поточний переклад буде втрачено.\n\nВи дійсно хочете повернути оригінал в усі рядки?",
+                "Попередження"))
             {
                 foreach (var entry in terms)
                 {
@@ -945,11 +946,10 @@ namespace Array_Translate_Tool
         {
             if (unsavedChanges)
             {
-                var res = MessageBox.Show("Бажаєте зберегти перед виходом?", "Вихід",
-                    MessageBoxButton.YesNoCancel);
-                if (res == MessageBoxResult.Yes)
+                var res = CustomMessageBox.ShowYesNoCancel("Бажаєте зберегти перед виходом?", "Вихід");
+                if (res == CustomMessageBox.MessageBoxResult.Yes)
                     BtnSave_Click(null, null);
-                else if (res == MessageBoxResult.Cancel)
+                else if (res == CustomMessageBox.MessageBoxResult.Cancel)
                     e.Cancel = true;
             }
         }
@@ -1025,6 +1025,20 @@ namespace Array_Translate_Tool
                     }
                 }
             }
+        }
+
+        private void BtnTheme_Click(object sender, RoutedEventArgs e)
+        {
+            bool isDark = App.IsDarkTheme();
+            App.ApplyTheme(!isDark);
+
+            BtnTheme.Header = isDark ? "Темна тема" : "Світла тема";
+        }
+
+        private void UpdateThemeButtonText()
+        {
+            bool isDark = App.IsDarkTheme();
+            BtnTheme.Header = isDark ? "Світла тема" : "Темна тема";
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)

@@ -2,7 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:Array_Translate_Tool"
         mc:Ignorable="d" Title="Вибір індексів" Height="250" Width="310"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="{DynamicResource WindowBackgroundBrush}">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,17 +15,21 @@
                    Name="LblPrompt"
                    Text=""
                    Margin="0,0,0,10"
-                   TextWrapping="Wrap"/>
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextForegroundBrush}"/>
 
         <ListBox Grid.Row="1"
                  Name="ListBoxIndices"
                  Margin="0,0,0,10"
                  SelectionChanged="ListBoxIndices_SelectionChanged"
-                 HorizontalContentAlignment="Stretch">
+                 HorizontalContentAlignment="Stretch"
+                 Background="{DynamicResource DataGridBackgroundBrush}"
+                 Foreground="{DynamicResource TextForegroundBrush}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}"
-                               Padding="1"/>
+                               Padding="1"
+                               Foreground="{DynamicResource TextForegroundBrush}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
