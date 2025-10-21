@@ -68,9 +68,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="MenuItem">
-                            <Border x:Name="Border"
-                        Background="{TemplateBinding Background}"
-                        Padding="8,6">
+                            <Border x:Name="Border" Background="{TemplateBinding Background}" Padding="8,6">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -92,19 +90,13 @@
                                    Foreground="{DynamicResource MenuForegroundBrush}" />
 
                                     <!-- Підменю -->
-                                    <Popup x:Name="Popup"
-                               Placement="Right"
-                               IsOpen="{TemplateBinding IsSubmenuOpen}"
-                               AllowsTransparency="True"
-                               Focusable="False"
-                               PopupAnimation="Fade">
+                                    <Popup x:Name="Popup" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True"
+                               Focusable="False" PopupAnimation="Fade">
                                         <Border x:Name="SubmenuBorder"
                                     Background="{DynamicResource MenuBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1"
-                                    Padding="4">
-                                            <StackPanel IsItemsHost="True"
-                                            KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                    BorderThickness="1">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
                                         </Border>
                                     </Popup>
                                 </Grid>
@@ -113,13 +105,13 @@
                             <ControlTemplate.Triggers>
                                 <!-- Для верхнього меню -->
                                 <Trigger Property="Role" Value="TopLevelHeader">
-                                    <Setter TargetName="Popup" Property="Placement" Value="Bottom" />
-                                    <Setter TargetName="Border" Property="Padding" Value="8,0,0,0" />
+                                    <Setter TargetName="Popup" Property="Placement" Value="Bottom"/>
+                                    <Setter TargetName="Border" Property="Padding" Value="8,0,0,0"/>
                                     <Setter Property="HorizontalAlignment" Value="Center"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 </Trigger>
                                 <Trigger Property="IsHighlighted" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource ButtonHoverBrush}" />
+                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Setter Property="Foreground" Value="#FF888888" />
@@ -131,7 +123,7 @@
             </Style>
 
             <Style TargetType="{x:Type Separator}">
-                <Setter Property="Height" Value="2"/>
+                <Setter Property="Height" Value="1"/>
                 <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
             </Style>
 
